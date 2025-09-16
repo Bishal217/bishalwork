@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Maze Escape</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    canvas {
+      background-color: #222;
+      display: block;
+      margin: 20px auto;
+      border: 2px solid white;
+    }
+    .history-button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #ffcc00;
+      color: black;
+      font-weight: bold;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .history-button:hover {
+      background-color: #ffaa00;
+      color: white;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>Maze Escape</h1>
+  <canvas id="mazeCanvas" width="400" height="400"></canvas>  <p>
+    <a href="https://chatgpt.com/share/68c8f4cf-1af0-8009-9a2c-6c7c03e82fa6" target="_blank" class="history-button">
+      View ChatGPT History
+    </a>
+  </p>  <script>
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const tileSize = 40;
+    const rows = 10;
+    const cols = 10;
+
+    const maze = [
+      [0,1,0,0,0,0,1,0,0,0],
+      [0,1,0,1,1,0,1,0,1,0],
+      [0,0,0,0,1,0,0,0,1,0],
+      [1,1,1,0,1,1,1,0,1,0],
+      [0,0,0,0,0,0,1,0,0,0],
+      [0,1,1,1,1,0,1,1,1,0],
+      [0,0,0,0,1,0,0,0,1,0],
+      [0,1,1,0,1,1,1,0,1,0],
+      [0,0,1,0,0,0,0,0,1,0],
+      [0,0,0,0,1,1,1,0,0,0]
+    ];
+
+    let player = {x:0, y:0};
+    let enemy = {x:5, y:5};
+    let exit = {x:9, y:9};
+
+    function drawMaze(){
+      for(let y=0; y<rows; y++){
+        for(let x=0; x<cols; x++){
+          if(maze[y][x] === 1){
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+          } else {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+          }
+        }
+      }
+
+      // exit
+      ctx.fillStyle = 'green';
+      ctx.fillRect(exit.x*tileSize, exit.y*tileSize, tileSize, tileSize);
+
+      // player
+      ctx.fillStyle = 'yellow';
+      ctx.beginPath();
+      ctx.arc(player.x*tileSize+20, player.y*tileSize+20, 15, 0, Math.PI*2);
+      ctx.fill();
+
+      // enemy
+      ctx.fillStyle = 'red';
+      ctx.fillRect(enemy.x*tileSize+5, enemy.y*tileSize+5, 30, 30);
+    }
+
+    function movePlayer(dx,dy){
+      let newX = player.x + dx;
+      let newY = player.y + dy;
+      if(newX>=0 && newX<cols && newY>=0 && newY<rows && maze[newY][newX]===0){
+        player.x = newX;
+        player.y = newY;
+      }
+      moveEnemy();
+      checkGameOver();
+      drawMaze();
+    }
+
+    function moveEnemy(){
+      const directions = [ [0,1],[0,-1],[1,0],[-1,0] ];
+      let [dx,dy] = directions[Math.floor(Math.random()*4)];
+      let newX = enemy.x + dx;
+      let newY = enemy.y + dy;
+      if(newX>=0 && newX<cols && newY>=0 && newY<rows && maze[newY][newX]===0){
+        enemy.x = newX;
+        enemy.y = newY;
+      }
+    }
+
+    function checkGameOver(){
+      if(player.x===exit.x && player.y===exit.y){
+        alert("🎉 You escaped!");
+        resetGame();
+      } else if(player.x===enemy.x && player.y===enemy.y){
+        alert("💀 Caught by enemy!");
+        resetGame();
+      }
+    }
+
+    function resetGame(){
+      player = {x:0, y:0};
+      enemy = {x:5, y:5};
+      drawMaze();
+    }
+
+    window.addEventListener('keydown', function(e){
+      if(e.key==='w') movePlayer(0,-1);
+      if(e.key==='s') movePlayer(0,1);
+      if(e.key==='a') movePlayer(-1,0);
+      if(e.key==='d') movePlayer(1,0);
+    });
+
+    drawMaze();
+  </script></body>
+</html>
