@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maze Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    h1 {
+      margin-top: 10px;
+      text-shadow: 2px 2px 4px black;
+    }
+    canvas {
+      display: block;
+      margin: 10px auto;
+      background: #111;
+      border: 4px solid #fff;
+      border-radius: 10px;
+      touch-action: none; /* Prevents scrolling during touch play */
+    }
+    #menu {
+      margin: 15px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      background: #27ae60;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2ecc71;
+    }
+    #controls {
+      margin-top: 15px;
+    }
+    #controls button {
+      font-size: 24px;
+      margin: 5px;
+      padding: 15px;
+      border-radius: 50%;
+      background: #444;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #controls button:hover {
+      background: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Maze Game</h1>
+
+  <div id="menu">
+    <p>Select Difficulty:</p>
+    <button onclick="startGame('easy')">Easy</button>
+    <button onclick="startGame('medium')">Medium</button>
+    <button onclick="startGame('hard')">Hard</button>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Mobile Controls -->
+  <div id="controls">
+    <button onclick="move('up')">⬆️</button><br>
+    <button onclick="move('left')">⬅️</button>
+    <button onclick="move('down')">⬇️</button>
+    <button onclick="move('right')">➡️</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let gridSize, rows, cols, maze, player, exit;
+
+    function startGame(difficulty) {
+      // Setup based on difficulty
+      if (difficulty === "easy") {
+        gridSize = 40; rows = 8; cols = 8;
+      } else if (difficulty === "medium") {
+        gridSize = 30; rows = 12; cols = 12;
+      } else {
+        gridSize = 20; rows = 20; cols = 20;
+      }
+
+      canvas.width = cols * gridSize;
+      canvas.height = rows * gridSize;
+
+      // Create simple maze (random walls for demo)
+      maze = [];
+      for (let r = 0; r < rows; r++) {
+        maze[r] = [];
+        for (let c = 0; c < cols; c++) {
+          maze[r][c] = Math.random() < 0.2 ? 1 : 0; // 1 = wall, 0 = path
+        }
+      }
+
+      // Player & exit setup
+      player = { x: 0, y: 0 };
+      exit = { x: cols - 1, y: rows - 1 };
+      maze[player.y][player.x] = 0;
+      maze[exit.y][exit.x] = 0;
+
+      drawMaze();
+    }
+
+    function drawMaze() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (maze[r][c] === 1) {
+            ctx.fillStyle = "#34495e";
+            ctx.fillRect(c * gridSize, r * gridSize, gridSize, gridSize);
+          } else {
+            ctx.fillStyle = "#2ecc71";
+            ctx.fillRect(c * gridSize, r * gridSize, gridSize, gridSize);
+          }
+        }
+      }
+
+      // Exit
+      ctx.fillStyle = "gold";
+      ctx.fillRect(exit.x * gridSize, exit.y * gridSize, gridSize, gridSize);
+
+      // Player
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(player.x * gridSize + gridSize / 2, player.y * gridSize + gridSize / 2, gridSize / 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function move(dir) {
+      let newX = player.x;
+      let newY = player.y;
+
+      if (dir === "up") newY--;
+      if (dir === "down") newY++;
+      if (dir === "left") newX--;
+      if (dir === "right") newX++;
+
+      if (newX >= 0 && newX < cols && newY >= 0 && newY < rows && maze[newY][newX] === 0) {
+        player.x = newX;
+        player.y = newY;
+        drawMaze();
+
+        if (player.x === exit.x && player.y === exit.y) {
+          setTimeout(() => {
+            alert("🎉 You Win!");
+          }, 100);
+        }
+      }
+    }
+
+    // Keyboard support
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") move("up");
+      if (e.key === "ArrowDown") move("down");
+      if (e.key === "ArrowLeft") move("left");
+      if (e.key === "ArrowRight") move("right");
+    });
+  </script>
+</body>
+</html>
