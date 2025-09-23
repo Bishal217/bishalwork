@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maze Game</title>
+  <title>Maze Game + Chat History</title>
   <style>
     body {
       margin: 0;
@@ -70,6 +70,22 @@
       margin-right: auto;
       text-align: left;
     }
+    #extra {
+      margin-top: 15px;
+    }
+    #extra a {
+      display: inline-block;
+      padding: 10px 15px;
+      margin: 5px;
+      background: #2980b9;
+      border-radius: 8px;
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    #extra a:hover {
+      background: #3498db;
+    }
   </style>
 </head>
 <body>
@@ -86,6 +102,11 @@
     <p>🎯 Level: <span id="level">1</span></p>
     <div id="history"><strong>Game History:</strong><br><span id="gameHistory">No games yet.</span></div>
     <button onclick="resetHistory()">Reset History</button>
+  </div>
+
+  <!-- Extra Links -->
+  <div id="extra">
+    <a href="https://chatgpt.com/share/68d24b07-b300-8011-88d2-d3740b640a1b" target="_blank">📜 Open Chat History</a>
   </div>
 
   <!-- Mobile Controls -->
