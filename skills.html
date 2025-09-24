@@ -1,18 +1,112 @@
-< html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Skills - Bishal Gautam</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb); /* different color background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      background: linear-gradient(45deg, #ff6a00, #ee0979);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 15px 0;
+      font-size: 1.2em;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    li:hover {
+      transform: scale(1.08);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 12px 25px;
+      text-decoration: none;
+      background: #ff6a00;
+      color: white;
+      border-radius: 25px;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    a:hover {
+      background: #ee0979;
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Animated floating background elements */
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      animation: float 6s infinite ease-in-out;
+    }
+
+    .circle:nth-child(1) { width: 100px; height: 100px; top: 10%; left: 15%; animation-delay: 0s; }
+    .circle:nth-child(2) { width: 150px; height: 150px; bottom: 20%; right: 10%; animation-delay: 2s; }
+    .circle:nth-child(3) { width: 80px; height: 80px; bottom: 30%; left: 25%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+  </style>
 </head>
 <body>
-  <h1>Skills</h1>
-  <ul>
-    <li>Teamwork and collaboration</li>
-    <li>Cross-cultural communication</li>
-    <li>Presentation and research skills</li>
-    <li>Idea generation and problem-solving</li>
-  </ul>
-  <p><a href="index.html">Back to Home</a></p>
+  <div class="circle"></div>
+  <div class="circle"></div>
+  <div class="circle"></div>
+
+  <div class="container">
+    <h1>Skills</h1>
+    <ul>
+      <li>Teamwork and collaboration</li>
+      <li>Cross-cultural communication</li>
+      <li>Presentation and research skills</li>
+      <li>Idea generation and problem-solving</li>
+    </ul>
+    <p><a href="index.html">Back to Home</a></p>
+  </div>
 </body>
 </html>
