@@ -1,9 +1,102 @@
-< html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bishal Gautam - Home</title>
+  <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #ffdd57;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+      animation: fadeInDown 1.5s ease-in-out;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 25px;
+      line-height: 1.6;
+      animation: fadeInUp 2s ease-in-out;
+    }
+
+    h2 {
+      margin: 30px 0 15px;
+      font-size: 2rem;
+      color: #00c6ff;
+      border-bottom: 2px solid #00c6ff;
+      display: inline-block;
+      padding-bottom: 5px;
+    }
+
+    ul {
+      list-style: none;
+      margin: 20px auto;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      animation: fadeIn 2.5s ease-in-out;
+    }
+
+    ul li a {
+      text-decoration: none;
+      color: #fff;
+      background: #00c6ff;
+      padding: 10px 20px;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+
+    ul li a:hover {
+      background: #ffdd57;
+      color: #000;
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* About Me Styling */
+    p:last-of-type {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 800px;
+      margin: 20px auto;
+      backdrop-filter: blur(5px);
+    }
+  </style>
 </head>
 <body>
   <h1>Hello! I am Bishal Gautam</h1>
