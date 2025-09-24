@@ -1,25 +1,242 @@
-< html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bishal Gautam - Home</title>
+  <title>Bishal Gautam - Portfolio</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+      scroll-behavior: smooth;
+    }
+
+    /* Hero / Intro Section */
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #1abc9c, #16a085);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin: 0;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+      max-width: 600px;
+    }
+    .hero button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: white;
+      color: #16a085;
+      font-size: 1rem;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .hero button:hover {
+      background: #ecf0f1;
+    }
+
+    /* Navbar */
+    nav {
+      background: #34495e;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      padding: 14px 20px;
+      display: block;
+      transition: background 0.3s;
+    }
+    nav a:hover,
+    nav a.active {
+      background: #1abc9c;
+    }
+
+    /* Section cards */
+    .content-section {
+      display: none;
+      max-width: 900px;
+      margin: auto;
+      padding: 60px 20px;
+    }
+    .content-section.active {
+      display: block;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h2 {
+      border-bottom: 2px solid #1abc9c;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      color: #2c3e50;
+    }
+
+    /* Footer */
+    footer {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin-top: 40px;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .hero p {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello! I am Bishal Gautam</h1>
-  <p>Second-semester IBM student at Dong-A University. I am passionate about learning global business, teamwork, and gaining new knowledge.</p>
 
-  <h2>Navigation</h2>
-  <ul>
-    <li><a href="index.html">Home</a></li>
-    <li><a href="projects.html">Projects</a></li>
-    <li><a href="skills.html">Skills</a></li>
-    <li><a href="achievements.html">Achievements</a></li>
-    <li><a href="hobbies.html">Hobbies</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <h1>Hello! I am Bishal Gautam</h1>
+    <p>Second-semester IBM student at Dong-A University. I am passionate about learning global business, teamwork, and gaining new knowledge.</p>
+    <button onclick="showSection('about')">Explore My Portfolio</button>
+  </section>
 
-  <h2>About Me</h2>
-  <p>I participated in the Global Win-Win Program where I connected with international students, gained new ideas, and improved my knowledge about teamwork and innovation.</p>
+  <!-- Navigation -->
+  <nav>
+    <a href="#about" onclick="showSection('about')">About</a>
+    <a href="#projects" onclick="showSection('projects')">Projects</a>
+    <a href="#skills" onclick="showSection('skills')">Skills</a>
+    <a href="#achievements" onclick="showSection('achievements')">Achievements</a>
+    <a href="#hobbies" onclick="showSection('hobbies')">Hobbies</a>
+    <a href="#contact" onclick="showSection('contact')">Contact</a>
+  </nav>
+
+  <!-- Content Sections -->
+  <section id="about" class="content-section">
+    <div class="card">
+      <h2>About Me</h2>
+      <p>I participated in the Global Win-Win Program where I connected with international students, gained new ideas, and improved my knowledge about teamwork and innovation.</p>
+    </div>
+  </section>
+
+  <section id="projects" class="content-section">
+    <div class="card">
+      <h2>Projects</h2>
+      <ul>
+        <li>Team presentation on market research for small businesses.</li>
+        <li>Class assignment analyzing international trade strategies.</li>
+        <li>Group project for Global Win-Win Program ideas exchange.</li>
+        <li><a href="https://docs.google.com/document/d/1kP9Ge_tnlUCyeN2tRqz8glD38VDuX8zsKKjmBswHBH0/edit?usp=drivesdk" target="_blank">AI Prompt Document</a></li>
+        <li><a href="https://bishal217.github.io/bishalwork/Maze.html" target="_blank">Old Maze Game</a></li>
+        <li><a href="https://bishal217.github.io/bishalwork/Newmaze.html" target="_blank">Updated Maze Game</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="skills" class="content-section">
+    <div class="card">
+      <h2>Skills</h2>
+      <ul>
+        <li>Teamwork and collaboration</li>
+        <li>Cross-cultural communication</li>
+        <li>Presentation and research skills</li>
+        <li>Idea generation and problem-solving</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="achievements" class="content-section">
+    <div class="card">
+      <h2>Achievements</h2>
+      <ul>
+        <li>Participated in Global Win-Win Program (international student networking)</li>
+        <li>Generated new ideas through teamwork</li>
+        <li>Enhanced knowledge about business strategies and innovation</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="hobbies" class="content-section">
+    <div class="card">
+      <h2>Hobbies</h2>
+      <ul>
+        <li>Reading about international business</li>
+        <li>Exploring cultural diversity</li>
+        <li>Learning new languages and communication skills</li>
+        <li>Networking with students worldwide</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="contact" class="content-section">
+    <div class="card">
+      <h2>Contact Me</h2>
+      <p>Email: <a href="mailto:bishalgautam@example.com">bishalgautam@example.com</a></p>
+      <p>LinkedIn: <a href="https://www.linkedin.com/in/bishalgautam" target="_blank">linkedin.com/in/bishalgautam</a></p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Bishal Gautam | Portfolio Website</p>
+  </footer>
+
+  <script>
+    // Show specific section and highlight nav link
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('.content-section');
+      const navLinks = document.querySelectorAll('nav a');
+
+      // Hide all sections
+      sections.forEach(sec => sec.classList.remove('active'));
+
+      // Remove highlight from all nav links
+      navLinks.forEach(link => link.classList.remove('active'));
+
+      // Show clicked section
+      const section = document.getElementById(sectionId);
+      if (section) section.classList.add('active');
+
+      // Highlight active link
+      const activeLink = document.querySelector(`nav a[href="#${sectionId}"]`);
+      if (activeLink) activeLink.classList.add('active');
+    }
+  </script>
+
 </body>
 </html>
