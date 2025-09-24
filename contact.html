@@ -1,14 +1,102 @@
-< html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact - Bishal Gautam</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928DAB); /* Dark elegant gradient */
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      animation: fadeIn 1.5s ease-in-out;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 25px;
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    .contact-info {
+      margin: 20px 0;
+      font-size: 1.2em;
+    }
+
+    .contact-info a {
+      color: #00c6ff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .contact-info a:hover {
+      color: #ffdd57;
+      transform: scale(1.05);
+    }
+
+    .icon {
+      font-size: 1.5em;
+      margin-right: 10px;
+    }
+
+    a.back-btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 12px 25px;
+      text-decoration: none;
+      background: #00c6ff;
+      color: #000;
+      border-radius: 25px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    a.back-btn:hover {
+      background: #ffdd57;
+      transform: scale(1.08);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <!-- FontAwesome for icons -->
+  <script src="https://kit.fontawesome.com/yourkitid.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <h1>Contact Me</h1>
-  <p>Email: <a href="mailto:bishalgautam@example.com">bishalgautam@example.com</a></p>
-  <p>LinkedIn: <a href="https://www.linkedin.com/in/bishalgautam" target="_blank">linkedin.com/in/bishalgautam</a></p>
-  <p><a href="index.html">Back to Home</a></p>
+  <div class="container">
+    <h1>Contact Me</h1>
+    <div class="contact-info">
+      <p><i class="fas fa-envelope icon"></i>Email: 
+        <a href="mailto:gautambishal961@gmail.com">gautambishal961@gmail.com</a>
+      </p>
+      <p><i class="fab fa-linkedin icon"></i>LinkedIn: 
+        <a href="https://www.linkedin.com/in/bishalgautam" target="_blank">linkedin.com/in/bishalgautam</a>
+      </p>
+    </div>
+    <p><a href="index.html" class="back-btn">Back to Home</a></p>
+  </div>
 </body>
 </html>
