@@ -1,18 +1,114 @@
-< html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hobbies - Bishal Gautam</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* Dark gradient */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 15px 0;
+      font-size: 1.2em;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    li:hover {
+      transform: scale(1.08);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 12px 25px;
+      text-decoration: none;
+      background: #00c6ff;
+      color: #000;
+      font-weight: bold;
+      border-radius: 25px;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    a:hover {
+      background: #ffdd57;
+      transform: scale(1.08);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Floating glowing circles */
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      animation: float 6s infinite ease-in-out;
+    }
+
+    .shape:nth-child(1) { width: 120px; height: 120px; top: 12%; left: 18%; animation-delay: 0s; }
+    .shape:nth-child(2) { width: 180px; height: 180px; bottom: 15%; right: 12%; animation-delay: 2s; }
+    .shape:nth-child(3) { width: 90px; height: 90px; bottom: 25%; left: 25%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hobbies</h1>
-  <ul>
-    <li>Reading about international business</li>
-    <li>Exploring cultural diversity</li>
-    <li>Learning new languages and communication skills</li>
-    <li>Networking with students worldwide</li>
-  </ul>
-  <p><a href="index.html">Back to Home</a></p>
+  <div class="shape"></div>
+  <div class="shape"></div>
+  <div class="shape"></div>
+
+  <div class="container">
+    <h1>Hobbies</h1>
+    <ul>
+      <li>Reading about international business</li>
+      <li>Exploring cultural diversity</li>
+      <li>Learning new languages and communication skills</li>
+      <li>Networking with students worldwide</li>
+    </ul>
+    <p><a href="index.html">Back to Home</a></p>
+  </div>
 </body>
 </html>
