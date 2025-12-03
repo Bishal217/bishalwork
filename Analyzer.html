@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DD Clue Helper — CSV Analyzer (Single file)</title>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0f1720; --card:#111827; --muted:#9CA3AF; --accent:#60A5FA; --accent-2:#34D399;
+    --text:#E6EEF3;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+  .wrap{max-width:1200px;margin:18px auto;padding:18px;}
+  header{display:flex;align-items:center;gap:12px;justify-content:space-between}
+  header h1{margin:0;font-size:20px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .card{background:var(--card);padding:14px;border-radius:10px;margin-top:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+  input,select,button{font-size:14px}
+  input[type="file"]{color:var(--muted)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .col{flex:1;min-width:220px}
+  button{background:var(--accent);color:#04293A;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  button.secondary{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
+  .small{font-size:13px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{position:sticky;top:0;background:#0b1220;padding:8px;border-bottom:1px solid rgba(255,255,255,0.03)}
+  td,th{padding:6px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text)}
+  tr.anom{background:rgba(255,99,71,0.12)}
+  .muted{color:var(--muted)}
+  .flex {display:flex;gap:10px;align-items:center;}
+  .chart-wrap canvas{background:#fff;border-radius:8px;padding:6px}
+  .badge{background:var(--accent-2);padding:4px 8px;border-radius:8px;color:#002018;font-weight:600}
+  .controls .field{display:flex;flex-direction:column}
+  .divider{height:1px;background:rgba(255,255,255,0.03);margin:12px 0}
+  .footer-note{font-size:12px;color:var(--muted);margin-top:10px}
+  .cond {margin:6px 0;padding:6px;background:#0b1220;border-radius:6px}
+  @media (max-width:1000px){ .row{flex-direction:column} .col{min-width:100%} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div style="display:flex;gap:12px;align-items:center">
+      <h1>DD Clue Helper — CSV Analyzer</h1>
+      <div class="small muted">Single-file — client-side</div>
+    </div>
+
+    <div class="controls">
+      <input id="fileInput" type="file" accept=".csv" />
+      <button id="loadBtn">Load CSV</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+      <button id="removeJunk" class="secondary">Remove Junk Rows</button>
+      <div class="small muted">Show top</div>
+      <select id="topCount"><option value="100" selected>100</option><option value="50">50</option><option value="25">25</option><option value="all">All</option></select>
+      <button id="showTop" class="secondary">Show Top Anomalies</button>
+      <button id="downloadTop" class="secondary">Download Top Anomalies</button>
+    </div>
+  </header>
+
+  <!-- SUMMARY -->
+  <div class="card" id="summaryCard" style="display:none">
+    <div class="row">
+      <div class="col"><strong>File:</strong> <span id="fileName" class="muted"></span></div>
+      <div class="col"><strong>Rows:</strong> <span id="rowCount" class="badge">0</span></div>
+      <div class="col"><strong>Columns:</strong> <span id="colCount" class="badge">0</span></div>
+      <div class="col"><strong>Numeric cols:</strong> <span id="numCols" class="muted"></span></div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="row">
+    <!-- LEFT -->
+    <div style="flex:1;min-width:360px">
+      <div class="card">
+        <h3>Data Preview</h3>
+        <div class="row small muted">
+          <div>Page size</div>
+          <select id="pageSize"><option>25</option><option>50</option><option>100</option></select>
+          <div>Page</div>
+          <input id="pageNum" type="number" value="1" style="width:72px"/>
+          <button id="prevPage" class="secondary">Prev</button>
+          <button id="nextPage" class="secondary">Next</button>
+          <button id="showAll" class="secondary">Show All</button>
+        </div>
+        <div id="dataTableWrapper" style="margin-top:10px;max-height:420px;overflow:auto">
+          <table id="dataTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Filters (multi)</h3>
+        <div class="row">
+          <div class="col field">
+            <label class="small muted">Column</label>
+            <select id="filterColumn"></select>
+          </div>
+          <div class="col field">
+            <label class="small muted">Operator</label>
+            <select id="filterOp"><option value="contains">contains</option><option value="eq">=</option><option value="gt">&gt;</option><option value="lt">&lt;</option><option value="ge">&gt;=</option><option value="le">&lt;=</option></select>
+          </div>
+          <div class="col field">
+            <label class="small muted">Value</label>
+            <input id="filterValue"/>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button id="addCond">Add Condition</button>
+          <button id="applyFilters" class="secondary">Apply Filters</button>
+          <button id="clearFilters" class="secondary">Clear Filters</button>
+          <button id="exportFiltered" class="secondary">Download Filtered</button>
+        </div>
+        <div id="condsList" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <h3>Group By & Aggregate</h3>
+        <div class="row">
+          <div class="col field"><label class="small muted">Group by (single)</label><select id="groupCol"></select></div>
+          <div class="col field"><label class="small muted">Aggregate column</label><select id="aggCol"></select></div>
+          <div class="col field"><label class="small muted">Function</label><select id="aggFunc"><option value="count">count</option><option value="sum">sum</option><option value="mean">mean</option><option value="median">median</option></select></div>
+        </div>
+        <div style="margin-top:8px"><button id="runGroup">Run</button> <button id="downloadAgg" class="secondary">Download Aggregation</button></div>
+        <div id="groupResult" style="margin-top:10px;max-height:200px;overflow:auto"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="flex:1;min-width:360px">
+      <div class="card">
+        <h3>Column Stats & Unique Counts</h3>
+        <div class="row">
+          <div class="col field"><label class="small muted">Column</label><select id="colSelect"></select></div>
+          <div class="col"><div class="small muted">Type: <span id="colType"></span></div><div class="small muted">Missing: <span id="colMissing"></span></div></div>
+        </div>
+        <div id="descStats" style="margin-top:10px;font-size:13px"></div>
+        <div class="divider"></div>
+        <div><h4 class="small muted">Unique counts (top values)</h4><div id="uniqueCounts" style="max-height:160px;overflow:auto"></div></div>
+      </div>
+
+      <div class="card">
+        <h3>Anomaly Detection</h3>
+        <div class="row">
+          <div class="col field"><label class="small muted">Numeric column (per-col)</label><select id="anCol"></select></div>
+          <div class="col field"><label class="small muted">Method</label><select id="anMethod"><option value="z">Z-score</option><option value="iqr">IQR</option><option value="both">Union</option></select></div>
+        </div>
+        <div style="margin-top:8px">
+          <button id="runAnom">Find per-column anomalies</button>
+          <button id="highlightAll" class="secondary">Highlight union across numeric cols</button>
+        </div>
+        <div id="anomSummary" style="margin-top:8px"></div>
+        <div id="anomTable" style="margin-top:10px;max-height:220px;overflow:auto"></div>
+        <div style="margin-top:8px"><button id="downloadPerCol" class="secondary">Download Per-column Anomalies</button></div>
+      </div>
+
+      <div class="card">
+        <h3>Date/Time Analysis</h3>
+        <div class="row">
+          <div class="col field"><label class="small muted">Date column</label><select id="dateCol"></select></div>
+          <div class="col field"><label class="small muted">Period</label><select id="dateFreq"><option value="day">Day</option><option value="week">Week</option><option value="month" selected>Month</option></select></div>
+          <div class="col field"><label class="small muted">Metric</label><select id="dateMetric"></select></div>
+        </div>
+        <div style="margin-top:8px"><button id="runTime">Run Trend</button></div>
+        <div class="chart-wrap" style="margin-top:10px"><canvas id="timeChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <h3>Visualizations</h3>
+        <div class="row">
+          <div class="col field"><label class="small muted">Column</label><select id="visCol"></select></div>
+          <div class="col field"><label class="small muted">Chart</label><select id="chartType"><option value="hist">Histogram</option><option value="line">Line</option><option value="bar">Bar</option></select></div>
+        </div>
+        <div style="margin-top:8px"><button id="drawVis">Draw Chart</button></div>
+        <div class="chart-wrap" style="margin-top:10px"><canvas id="mainChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note card small muted">Tip: For very large CSVs (>100k rows) the browser may be slow — consider sampling or using Python/Streamlit. This tool is tuned for interactive exploration and your DD clues.</div>
+</div>
+
+<script>
+/* ---------------- State ----------------*/
+let RAW = [], HEADERS = [], DATA = []; // DATA is array of objects
+let TYPES = {}; // 'numeric'|'datetime'|'categorical'|'text'
+let FILTERS = []; // {col,op,val}
+let TOP_ROWS = []; // top anomalies (row objects with score)
+let PER_COL_ANOMS = {}; // map column-> array of row indices
+let chartMain=null, chartTime=null;
+
+/* ---------------- Helpers ----------------*/
+function safeNum(s){ if(s===null||s===undefined) return NaN; const n = Number(String(s).replace(/[, ]+/g,'')); return isNaN(n)?NaN:n; }
+function mean(arr){ if(!arr || arr.length===0) return NaN; return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function median(arr){ if(!arr||arr.length===0) return NaN; const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
+function sd(arr){ if(!arr||arr.length===0) return NaN; const mu=mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+Math.pow(b-mu,2),0)/arr.length); }
+function escapeHTML(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------------- Parse CSV ----------------*/
+document.getElementById('loadBtn').addEventListener('click', ()=> {
+  const f = document.getElementById('fileInput').files[0];
+  if(!f) return alert('Choose a CSV file');
+  window.loadedFileName = f.name;
+  Papa.parse(f, { skipEmptyLines:true, complete: function(res){
+      const rows = res.data;
+      HEADERS = rows[0].map(h=>String(h).trim());
+      RAW = rows.slice(1).map(r => {
+         const row = new Array(HEADERS.length).fill('');
+         for(let i=0;i<Math.min(r.length, HEADERS.length); i++) row[i]=r[i];
+         return row;
+      });
+      DATA = RAW.map(r => {
+         const o={};
+         for(let i=0;i<HEADERS.length;i++) o[HEADERS[i]]=r[i];
+         return o;
+      });
+      detectTypes();
+      updateUIAfterLoad();
+  }});
+});
+
+/* Reset */
+document.getElementById('resetBtn').addEventListener('click', ()=> location.reload());
+
+/* Detect column types */
+function detectTypes(){
+  TYPES = {};
+  for(const h of HEADERS){
+    const col = DATA.map(r=>r[h]).filter(v=>v!=='' && v!==null && v!==undefined);
+    let num=0, datec=0;
+    for(let i=0;i<Math.min(col.length,500); i++){
+      const v = col[i];
+      if(!isNaN(Number(String(v).replace(/[, ]+/g,'')))) num++;
+      if(!isNaN(Date.parse(String(v)))) datec++;
+    }
+    if(col.length===0) TYPES[h]='text';
+    else if(num/Math.min(col.length,500) > 0.7) TYPES[h]='numeric';
+    else if(datec/Math.min(col.length,500) > 0.7) TYPES[h]='datetime';
+    else if((new Set(col)).size < Math.min(200, Math.max(10, col.length/4))) TYPES[h]='categorical';
+    else TYPES[h]='text';
+  }
+}
+
+/* ---------------- Update UI after load ----------------*/
+function updateUIAfterLoad(){
+  document.getElementById('summaryCard').style.display='block';
+  document.getElementById('fileName').textContent = window.loadedFileName || 'Uploaded CSV';
+  document.getElementById('rowCount').textContent = DATA.length;
+  document.getElementById('colCount').textContent = HEADERS.length;
+  document.getElementById('numCols').textContent = HEADERS.filter(h=>TYPES[h]==='numeric').join(', ') || '—';
+
+  // populate selects
+  ['colSelect','filterColumn','groupCol','aggCol','anCol','visCol','dateCol','filterColumn','dateMetric','aggCol'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = HEADERS.map(h=>`<option value="${h}">${h}</option>`).join('');
+  });
+
+  // dateMetric: allow empty (count)
+  const numCols = HEADERS.filter(h=>TYPES[h]==='numeric');
+  document.getElementById('dateMetric').innerHTML = ['<option value="">(count)</option>'].concat(numCols.map(c=>`<option value="${c}">${c}</option>`)).join('');
+
+  renderTablePage();
+  renderUniqueCounts();
+  renderColumnStats(HEADERS[0]);
+  computeTopRows(); // guarantee top rows
+}
+
+/* ---------------- Pagination & preview ----------------*/
+function applyActiveFiltersToRows(){
+  if(FILTERS.length===0) return DATA;
+  return DATA.filter((row, idx) => {
+    for(const f of FILTERS){
+      const v = row[f.col];
+      const op = f.op; const val = f.val;
+      if(op==='contains'){ if(!String(v||'').toLowerCase().includes(String(val).toLowerCase())) return false; }
+      else if(op==='eq'){ if(String(v)!==String(val)) return false; }
+      else { const n=Number(String(v).replace(/[, ]+/g,'')); const t=Number(val); if(isNaN(n)||isNaN(t)) return false; if(op==='gt' && !(n>t)) return false; if(op==='lt' && !(n<t)) return false; if(op==='ge' && !(n>=t)) return false; if(op==='le' && !(n<=t)) return false; }
+    }
+    return true;
+  });
+}
+
+function renderTablePage(showAll=false){
+  const pSize = Number(document.getElementById('pageSize').value);
+  const pNum = Number(document.getElementById('pageNum').value) || 1;
+  const rows = applyActiveFiltersToRows();
+  const tbody = document.querySelector('#dataTable tbody');
+  const thead = document.querySelector('#dataTable thead');
+  thead.innerHTML = '<tr>' + HEADERS.map(h=>`<th>${escapeHTML(h)}</th>`).join('') + '</tr>';
+  tbody.innerHTML='';
+
+  let start=0,end=rows.length;
+  if(!showAll){ start=(pNum-1)*pSize; end=Math.min(rows.length, start+pSize); }
+
+  for(let r=start;r<end;r++){
+    const row = rows[r];
+    const tr=document.createElement('tr');
+    tr.innerHTML = HEADERS.map(h=>`<td>${escapeHTML(row[h])}</td>`).join('');
+    // highlight if in top rows or per col anomalies
+    const inTop = TOP_ROWS.some(t=>t.index===r+1);
+    if(inTop) tr.classList.add('anom');
+    tbody.appendChild(tr);
+  }
+}
+
+/* page controls */
+document.getElementById('prevPage').addEventListener('click', ()=>{ let p=Number(document.getElementById('pageNum').value); if(p>1){document.getElementById('pageNum').value=p-1; renderTablePage();}});
+document.getElementById('nextPage').addEventListener('click', ()=>{ let p=Number(document.getElementById('pageNum').value); document.getElementById('pageNum').value=p+1; renderTablePage();});
+document.getElementById('showAll').addEventListener('click', ()=> renderTablePage(true));
+document.getElementById('pageSize').addEventListener('change', ()=> { document.getElementById('pageNum').value=1; renderTablePage(); });
+
+/* ---------------- Column stats & unique counts ----------------*/
+document.getElementById('colSelect').addEventListener('change', e=> renderColumnStats(e.target.value) );
+
+function renderColumnStats(col){
+  const t=TYPES[col];
+  document.getElementById('colType').textContent = t;
+  const missing = DATA.filter(r=> r[col]===''||r[col]===null||r[col]===undefined).length;
+  document.getElementById('colMissing').textContent = `${missing} (${Math.round(100*missing/DATA.length)||0}%)`;
+  const ds = document.getElementById('descStats'); ds.innerHTML='';
+  if(t==='numeric'){
+    const vals = DATA.map(r=>safeNum(r[col])).filter(x=>!isNaN(x));
+    const d = {count:vals.length, mean:mean(vals), median:median(vals), sd:sd(vals), min: Math.min(...vals), max: Math.max(...vals)};
+    ds.innerHTML = `<div><strong>count:</strong> ${d.count} &nbsp; <strong>mean:</strong> ${isNaN(d.mean)?'n/a':d.mean.toFixed(3)} &nbsp; <strong>median:</strong> ${isNaN(d.median)?'n/a':d.median.toFixed(3)}</div>
+                    <div><strong>sd:</strong> ${isNaN(d.sd)?'n/a':d.sd.toFixed(3)} &nbsp; <strong>min:</strong> ${isFinite(d.min)?d.min:''} &nbsp; <strong>max:</strong> ${isFinite(d.max)?d.max:''}</div>`;
+  } else if(t==='datetime'){
+    ds.innerHTML = `<div class="small muted">Datetime column. Parseable dates: ${DATA.filter(r=>!isNaN(Date.parse(r[col]))).length}</div>`;
+  } else {
+    const values = DATA.map(r=>String(r[col]||''));
+    const counts={};
+    for(const v of values) counts[v]=(counts[v]||0)+1;
+    const uniq = Object.keys(counts).length;
+    const top = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    ds.innerHTML = `<div><strong>unique:</strong> ${uniq}</div><div style="margin-top:6px"><strong>top values:</strong><ul>${top.map(t=>`<li>${escapeHTML(t[0])} — ${t[1]}</li>`).join('')}</ul></div>`;
+  }
+  // set visual select
+  document.getElementById('anCol').value = col;
+  document.getElementById('visCol').value = col;
+}
+
+/* unique counts area */
+function renderUniqueCounts(){
+  const area = document.getElementById('uniqueCounts'); area.innerHTML='';
+  for(const h of HEADERS){
+    if(TYPES[h]==='categorical' || TYPES[h]==='text'){
+      const counts={};
+      for(const r of DATA){ const v= (r[h]===null||r[h]===undefined)?'':String(r[h]); counts[v]=(counts[v]||0)+1;}
+      const top = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      const html = `<div style="margin-bottom:8px"><strong>${h}</strong> — unique: ${Object.keys(counts).length}<br><small>${top.map(t=>escapeHTML(t[0])+' ('+t[1]+')').join(', ')}</small></div>`;
+      area.innerHTML += html;
+    }
+  }
+}
+
+/* ---------------- Filters multi ----------------*/
+document.getElementById('addCond').addEventListener('click', ()=>{
+  const col = document.getElementById('filterColumn').value;
+  const op  = document.getElementById('filterOp').value;
+  const val = document.getElementById('filterValue').value;
+  if(!col || val==='') return alert('choose column and value');
+  FILTERS.push({col,op,val});
+  renderConditions();
+});
+
+document.getElementById('applyFilters').addEventListener('click', ()=> { document.getElementById('pageNum').value=1; renderTablePage(); });
+document.getElementById('clearFilters').addEventListener('click', ()=> { FILTERS=[]; renderConditions(); renderTablePage(); });
+
+function renderConditions(){
+  const el = document.getElementById('condsList'); el.innerHTML='';
+  if(FILTERS.length===0){ el.innerHTML='<div class="muted">No active filters</div>'; return; }
+  FILTERS.forEach((f,i)=> {
+    const d=document.createElement('div'); d.className='cond'; d.innerHTML = `<strong>${f.col}</strong> ${f.op} <em>${escapeHTML(f.val)}</em> <button data-i="${i}" class="rmBtn">x</button>`;
+    el.appendChild(d);
+  });
+  el.querySelectorAll('.rmBtn').forEach(b=> b.onclick=()=>{ FILTERS.splice(Number(b.dataset.i),1); renderConditions(); renderTablePage();});
+}
+
+/* ---------------- Group & aggregate ----------------*/
+document.getElementById('runGroup').addEventListener('click', ()=>{
+  const g=document.getElementById('groupCol').value;
+  const a=document.getElementById('aggCol').value;
+  const fn=document.getElementById('aggFunc').value;
+  const rows=applyActiveFiltersToRows();
+  const map=new Map();
+  for(const r of rows){
+    const key = r[g]||'(empty)';
+    if(!map.has(key)) map.set(key,[]);
+    map.get(key).push(r);
+  }
+  const out=[];
+  for(const [k,arr] of map.entries()){
+    const nums = arr.map(x=>safeNum(x[a])).filter(x=>!isNaN(x));
+    let val;
+    if(fn==='count') val = arr.length;
+    else if(fn==='sum') val = nums.reduce((p,c)=>p+c,0);
+    else if(fn==='mean') val = nums.length? (nums.reduce((p,c)=>p+c,0)/nums.length):0;
+    else if(fn==='median') val = median(nums);
+    out.push(Object.assign({group:k}, {[fn+'_'+a]: isNaN(val)?'':Math.round((val+Number.EPSILON)*100000)/100000}));
+  }
+  document.getElementById('groupResult').innerHTML = `<pre style="max-height:200px;overflow:auto">${JSON.stringify(out.slice(0,200),null,2)}</pre>`;
+  document.getElementById('downloadAgg').onclick = ()=> downloadObjectArray(out, Object.keys(out[0]||{}), 'groupby_agg.csv');
+});
+
+/* ---------------- Date/time trend ----------------*/
+document.getElementById('runTime').addEventListener('click', ()=>{
+  const dateCol = document.getElementById('dateCol').value;
+  const freq = document.getElementById('dateFreq').value;
+  const metric = document.getElementById('dateMetric').value; // '' means count
+  if(!dateCol) return alert('choose a date column');
+  const rows = applyActiveFiltersToRows().map(r=> ({...r, __date: new Date(r[dateCol])})).filter(r=>!isNaN(r.__date));
+  if(rows.length===0) return alert('no parseable dates in filtered data');
+  const buckets={};
+  for(const r of rows){
+    const d=r.__date;
+    let key;
+    if(freq==='day') key = d.toISOString().slice(0,10);
+    else if(freq==='week'){ const onejan = new Date(d.getFullYear(),0,1); const week = Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7); key = `${d.getFullYear()}-W${week}`; }
+    else key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!buckets[key]) buckets[key]=[];
+    buckets[key].push(r);
+  }
+  const labels = Object.keys(buckets).sort();
+  const values = labels.map(k=>{
+    const arr = buckets[k];
+    if(!metric) return arr.length;
+    const nums = arr.map(x=>safeNum(x[metric])).filter(x=>!isNaN(x));
+    return nums.length? Math.round((mean(nums)+Number.EPSILON)*1000)/1000 : 0;
+  });
+  drawChart('timeChart', labels, values, 'line', metric||'count');
+});
+
+/* ---------------- Visualizations ----------------*/
+document.getElementById('drawVis').addEventListener('click', ()=>{
+  const col = document.getElementById('visCol').value;
+  const type = document.getElementById('chartType').value;
+  const rows = applyActiveFiltersToRows();
+  if(TYPES[col]==='numeric' && type!=='bar'){
+    const vals = rows.map(r=>safeNum(r[col])).filter(v=>!isNaN(v));
+    if(vals.length===0) return alert('no numeric values');
+    if(type==='hist'){
+      const bins=30; const min=Math.min(...vals), max=Math.max(...vals); const width=(max-min)/(bins||1);
+      const buckets=new Array(bins).fill(0);
+      for(const v of vals){ const idx=Math.min(bins-1, Math.floor((v-min)/(width||1))); buckets[idx]++; }
+      const labels = new Array(bins).fill(0).map((_,i)=> (min + i*width).toFixed(2));
+      drawChart('mainChart', labels, buckets, 'bar', col);
+    } else {
+      drawChart('mainChart', vals.map((v,i)=>i+1), vals, 'line', col);
+    }
+  } else {
+    const counts={}; for(const r of rows){ const v=r[col]===undefined||r[col]===null?'':String(r[col]); counts[v]=(counts[v]||0)+1; }
+    const pairs = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,50);
+    drawChart('mainChart', pairs.map(p=>p[0]), pairs.map(p=>p[1]), 'bar', col);
+  }
+});
+
+function drawChart(canvasId, labels, dataVals, type='line', labelText='value'){
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if(canvasId==='mainChart' && chartMain) chartMain.destroy();
+  if(canvasId==='timeChart' && chartTime) chartTime.destroy();
+  const cfg = { type, data:{ labels, datasets:[{ label: labelText, data: dataVals, borderWidth:1, backgroundColor:'rgba(96,165,250,0.6)', borderColor:'rgba(59,130,246,1)'}]}, options:{responsive:true, maintainAspectRatio:false, scales:{x:{ticks:{autoSkip:true,maxTicksLimit:20}}}}};
+  if(canvasId==='mainChart') chartMain = new Chart(ctx,cfg); else chartTime = new Chart(ctx,cfg);
+}
+
+/* ---------------- Anomaly detection ----------------*/
+/* Per column detection: Z-score and IQR */
+function findZAnomalies(col, threshold=3){
+  const vals = DATA.map((r,i)=>({i,val:safeNum(r[col])})).filter(x=>!isNaN(x.val));
+  const arr = vals.map(x=>x.val);
+  if(arr.length===0) return [];
+  const m = mean(arr), s = sd(arr);
+  if(isNaN(s) || s===0) return [];
+  return vals.filter(x=> Math.abs((x.val - m)/s) > threshold).map(x=>x.i);
+}
+function findIQRAnomalies(col, k=1.5){
+  const vals = DATA.map((r,i)=>({i,val:safeNum(r[col])})).filter(x=>!isNaN(x.val));
+  const arr = vals.map(x=>x.val).sort((a,b)=>a-b);
+  if(arr.length===0) return [];
+  const q1 = arr[Math.floor((arr.length-1)*0.25)];
+  const q3 = arr[Math.floor((arr.length-1)*0.75)];
+  const iqr = q3-q1;
+  const lower = q1 - k*iqr, upper = q3 + k*iqr;
+  return vals.filter(x=> x.val < lower || x.val > upper).map(x=>x.i);
+}
+
+/* run per-col anomalies */
+document.getElementById('runAnom').addEventListener('click', ()=>{
+  const col=document.getElementById('anCol').value;
+  const method=document.getElementById('anMethod').value;
+  const zT=Number(document.getElementById('zThresh')?.value || 3);
+  const k=Number(document.getElementById('iqrK')?.value || 1.5);
+  let idxs=[];
+  if(method==='z' || method==='both') idxs = idxs.concat(findZAnomalies(col,zT));
+  if(method==='iqr' || method==='both') idxs = idxs.concat(findIQRAnomalies(col,k));
+  idxs = Array.from(new Set(idxs)).sort((a,b)=>a-b);
+  PER_COL_ANOMS[col]=idxs;
+  document.getElementById('anomSummary').innerHTML = `<div><strong>${idxs.length}</strong> anomalous rows in column <em>${col}</em></div>`;
+  renderPerColAnoms(col);
+});
+
+/* union across numeric cols */
+document.getElementById('highlightAll').addEventListener('click', ()=>{
+  const numerics = HEADERS.filter(h=>TYPES[h]==='numeric');
+  const zT=Number(document.getElementById('zThresh')?.value || 3);
+  const k=Number(document.getElementById('iqrK')?.value || 1.5);
+  const allIdx = new Set();
+  for(const c of numerics){ findZAnomalies(c,zT).forEach(i=>allIdx.add(i)); findIQRAnomalies(c,k).forEach(i=>allIdx.add(i)); }
+  // show summary and render table highlights
+  document.getElementById('anomSummary').innerHTML = `<div><strong>${allIdx.size}</strong> anomalous rows across numeric columns</div>`;
+  // render: mark rows in preview table
+  renderTablePage();
+});
+
+/* render per-col anomalies table */
+function renderPerColAnoms(col){
+  const idxs = PER_COL_ANOMS[col]||[];
+  if(idxs.length===0){ document.getElementById('anomTable').innerHTML='<div class="muted">No anomalies for column</div>'; return; }
+  let html = '<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody>';
+  idxs.forEach(i=>{
+    html += `<tr class="anom"><td>${i+1}</td><td>${escapeHTML(DATA[i][col])}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('anomTable').innerHTML = html;
+}
+document.getElementById('downloadPerCol').addEventListener('click', ()=>{
+  const col=document.getElementById('anCol').value;
+  const idxs = PER_COL_ANOMS[col]||[];
+  if(idxs.length===0) return alert('no per-col anomalies to download');
+  const rows = idxs.map(i=>DATA[i]);
+  downloadObjectArray(rows, HEADERS, `percol_anoms_${col}.csv`);
+});
+
+/* ---------------- TOP ROWS (guarantee N) ----------------*/
+/* compute row-level score = sum(|z|) across numeric columns and sort */
+function computeTopRows(){
+  const numerics = HEADERS.filter(h=>TYPES[h]==='numeric');
+  const zcols = {};
+  // precompute z per column for speed
+  for(const c of numerics){
+    const vals = DATA.map(r=>safeNum(r[c])).filter(x=>!isNaN(x));
+    if(vals.length===0) continue;
+    const m=mean(vals), s=sd(vals);
+    zcols[c]={m,s};
+  }
+  const scores = DATA.map((r,i)=>{
+    let score = 0;
+    for(const c of numerics){
+      const meta=zcols[c];
+      if(!meta) continue;
+      const v=safeNum(r[c]);
+      if(isNaN(v)) continue;
+      const sdev = meta.s || 0;
+      const z = sdev===0?0:Math.abs((v-meta.m)/sdev);
+      score += z;
+    }
+    return {index:i+1,score};
+  });
+  scores.sort((a,b)=>b.score - a.score);
+  const limit = document.getElementById('topCount') ? document.getElementById('topCount').value : '100';
+  let top = limit==='all'? scores : scores.slice(0,Math.min(Number(limit), scores.length));
+  // attach row objects
+  TOP_ROWS = top.map(t => Object.assign({index:t.index,score:t.score}, DATA[t.index-1]));
+  // showTop called externally on button
+}
+
+/* show top anomalies */
+document.getElementById('showTop').addEventListener('click', ()=> {
+  computeTopRows();
+  displayTopRows();
+});
+document.getElementById('topCount').addEventListener('change', ()=> { computeTopRows(); });
+
+function displayTopRows(){
+  if(TOP_ROWS.length===0) computeTopRows();
+  const top = TOP_ROWS;
+  const cols = HEADERS;
+  let html = '<table><thead><tr><th>#</th><th>score</th>' + cols.map(c=>`<th>${escapeHTML(c)}</th>`).join('') + '</tr></thead><tbody>';
+  for(const r of top){
+    html += `<tr class="anom"><td>${r.index}</td><td>${r.score.toFixed(3)}</td>` + cols.map(c=>`<td>${escapeHTML(r[c])}</td>`).join('') + '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('anomalies').innerHTML = html;
+}
+
+/* download top anomalies */
+document.getElementById('downloadTop').addEventListener('click', ()=> {
+  if(TOP_ROWS.length===0) computeTopRows();
+  const top = TOP_ROWS;
+  const cols = ['row','score'].concat(HEADERS);
+  const rows = top.map(r => {
+    return cols.map(c => (c==='row'? r.index : (c==='score'? r.score : r[c])));
+  });
+  downloadCSV([cols].concat(rows), 'top_rows_anomalies.csv');
+});
+
+/* ---------------- Remove junk rows ----------------*/
+document.getElementById('removeJunk').addEventListener('click', ()=>{
+  DATA = DATA.filter(r => {
+    for(const h of HEADERS){
+      const v = r[h];
+      if(v===null||v===undefined||String(v).trim()==='') return false;
+      const s = String(v).trim().toLowerCase();
+      if(s==='null' || s==='undefined' || s==='nan') return false;
+    }
+    return true;
+  });
+  RAW = DATA.map(r=>HEADERS.map(h=>r[h]));
+  document.getElementById('rowCount').textContent = DATA.length;
+  renderTablePage();
+  renderUniqueCounts();
+});
+
+/* ---------------- Export filtered or other ----------------*/
+document.getElementById('exportFiltered').addEventListener('click', ()=> {
+  const rows = applyActiveFiltersToRows();
+  if(!rows || rows.length===0) return alert('no rows');
+  const arr = [HEADERS].concat(rows.map(r=>HEADERS.map(h=>r[h])));
+  downloadCSV(arr, 'filtered.csv');
+});
+document.getElementById('exportFiltered')?.remove?.(); // remove stray if absent
+
+function downloadObjectArray(rows, headers, filename){
+  if(!rows || rows.length===0) return alert('no rows');
+  const csv = [headers.join(',')].concat(rows.map(r=> headers.map(h=> `"${String(r[h]||'').replace(/"/g,'""')}"`).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename||'export.csv'; a.click();
+}
+function downloadCSV(arrOfArr, filename){
+  const csv = arrOfArr.map(r=> r.map(c=> `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename||'export.csv'; a.click();
+}
+
+/* applyActiveFiltersToRows function defined earlier - reuse */
+function applyActiveFiltersToRows(){
+  if(FILTERS.length===0) return DATA;
+  return DATA.filter((row, idx) => {
+    for(const f of FILTERS){
+      const v = row[f.col];
+      const op = f.op;
+      const val = f.val;
+      if(op==='contains'){ if(!String(v||'').toLowerCase().includes(String(val).toLowerCase())) return false; }
+      else if(op==='eq'){ if(String(v)!==String(val)) return false; }
+      else { const num = Number(String(v).replace(/[, ]+/g,'')); const t = Number(val); if(isNaN(num)||isNaN(t)) return false; if(op==='gt' && !(num>t)) return false; if(op==='lt' && !(num<t)) return false; if(op==='ge' && !(num>=t)) return false; if(op==='le' && !(num<=t)) return false; }
+    }
+    return true;
+  });
+}
+
+/* ---------------- Utility: render table helper for top initial load ----------------*/
+function renderInitialTable(){
+  renderTablePage();
+}
+
+/* ---------------- Chart helper (used earlier) ----------------*/
+// implemented above as drawChart
+
+/* ---------------- Wire up other UI & small initializations ----------------*/
+document.getElementById('filterColumn').addEventListener('change', ()=>{});
+document.getElementById('colSelect').addEventListener('change', ()=>{});
+document.getElementById('anCol').addEventListener('change', ()=>{});
+document.getElementById('visCol').addEventListener('change', ()=>{});
+
+// showTop on first load once data present (user must click)
+document.getElementById('downloadTop').addEventListener('click', ()=> { if(TOP_ROWS.length===0) computeTopRows(); });
+
+/* ensure updateUIAfterLoad is available globally */
+window.updateUIAfterLoad = updateUIAfterLoad;
+
+/* finalize - small safe defaults to avoid errors when some UI elements are missing */
+(function attachOptional(){
+  if(!document.getElementById('applyFilters')) return;
+  // previously wired handlers already attached above
+})();
+
+</script>
+</body>
+</html>
